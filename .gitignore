@@ -1,0 +1,41 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Entornos virtuales
+venv/
+.env/
+.venv/
+
+# Archivos de configuración sensibles
+*.env
+
+# Archivos de base de datos locales
+*.sqlite3
+
+# Archivos estáticos generados
+static/
+staticfiles/
+
+# Archivos de medios subidos (mejor guardarlos en S3)
+media/
+sonido/
+personasConocidas2/
+env/
+
+
+# Archivos de logs
+*.log
+
+# Configuración de IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Node (si usas React o npm)
+node_modules/
+
+# Mac
+.DS_Store
