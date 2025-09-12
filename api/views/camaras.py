@@ -20,6 +20,12 @@ def get_camaras(request):
     serializer = CamarasSerializer(camaras, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def getCamarasSinEstado(request):
+    camaras = Camaras.objects.all()
+    serializer = CamarasSerializer(camaras, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 def create_camara(request):
     serializer = CamarasAgregar(data = request.data)

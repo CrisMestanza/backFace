@@ -34,7 +34,7 @@ def extractPersonaRq(request):
                 print("Error persona:", persona_serializer.errors)
                 continue  # Salta a la siguiente carpeta si no se pudo crear
 
-        # 👇 Lógica común que siempre se ejecuta UNA VEZ
+        # Lógica común que siempre se ejecuta UNA VEZ
         nombres = os.path.join(carpetas_dia_actual, carpeta)
         if not os.path.exists(nombres):
             continue

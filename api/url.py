@@ -6,16 +6,18 @@ from .views import viewsCamaras
 from .views import subProcess
 from .views import imagenes
 from .views import personasRq
+from .views import mapa
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     #Mostrar camara
-    path('camera_feed/<int:camera_id>/', viewsCamaras.camera_feed, name='camaras-view'),  # Para obtener una cámara específica por ID
+    path('camera_feed/<str:camera_id>/<str:nombre>/', viewsCamaras.camera_feed, name='camaras-view'),  # Para obtener una cámara específica por ID
     path('deseleccionar_camara/<int:camera_id>/', viewsCamaras.deseleccionar_camara, name='deseleccionar_camara'),
 
     #Camaras 
     path('camaras/', camaras.get_camaras, name='camaras-list'), 
+    path('getCamarasSinEstado/', camaras.getCamarasSinEstado, name='getCamarasSinEstado'), 
     path('camarasPost/', camaras.create_camara, name='camaras-create'),  
     path('camarasPut/<int:pk>/', camaras.update_camara, name='camaras-update'),  
     path('camarasDelete/<int:pk>/', camaras.update_camara_estado, name='camaras-delete'),  
@@ -52,9 +54,15 @@ urlpatterns = [
     path('extraerPersonas/', personasRq.extractPersonaRq, name='extractPersonaRq'),  # Para obtener todas las cámaras
     path('getPersonasRq/', personasRq.getPersonasRq, name='getPersonasRq'),  # Para obtener todas las cámaras
     path('getPersonasRqPk/<int:pk>', personasRq.getPersonasRqPk, name='getPersonasRqPk'),  # Para obtener todas las cámaras
-    
+    #Mapa
+    path('getListSerenos/', mapa.getListSerenos, name='getListSerenos'),  # Para obtener todas las cámaras
+    path('getBanda/', mapa.getBanda, name='getBanda'),  # Para obtener todas las cámaras
+    path('getTarapoto/', mapa.getTarapoto, name='getTarapoto'),  # Para obtener todas las cámaras
+    path('getMorales/', mapa.getMorales, name='getMorales'),  # Para obtener todas las cámaras
+    path('getMapa/<int:z>/<int:x>/<int:y>.png', mapa.getMapa, name='getMapa'),
+
+
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
