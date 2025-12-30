@@ -13,7 +13,7 @@ import pygame
 # =========================
 # CONFIG
 # =========================
-API_URL = os.getenv("FACE_API_URL", "https://39fc463f514b.ngrok-free.app/recognize")  # pon aquí tu URL pública de ngrok /recognize
+API_URL = os.getenv("FACE_API_URL", "https://ae26e253a0fa.ngrok-free.app/recognize")  # pon aquí tu URL pública de ngrok /recognize
 RUTA_MEDIA = "media"
 SIM_THRESHOLD = 0.65      # solo para colorear / lógica local (la API ya filtra también)
 SOUND_COOLDOWN = 3        # seg. entre sonidos
@@ -90,9 +90,10 @@ class ProcesadorAPI(threading.Thread):
 def gen_camera_stream(camera_id, nombre):
     print(f"Conectando a la cámara {camera_id}...")
     rtsp_url = f"rtsp://admin:Serenazgo1234@{str(camera_id)}/video?tcp"
-
-    cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
-    cap.set(cv2.CAP_PROP_BUFFERSIZE,    1)
+    print(camera_id)
+    cap = cv2.VideoCapture(int(camera_id))
+    # cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+    # cap.set(cv2.CAP_PROP_BUFFERSIZE,    1)
 
     if not cap.isOpened():
         print("No se pudo abrir la cámara.")

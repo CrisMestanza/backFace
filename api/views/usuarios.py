@@ -15,6 +15,7 @@ def getUsuarios(request):
 #Agregar
 @api_view(['POST'])
 def createUsuario(request):
+    print( request.data)
     serializer = UsuariosSerializer(data = request.data)
     if serializer.is_valid():
         serializer.save()

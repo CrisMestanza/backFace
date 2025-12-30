@@ -16,7 +16,7 @@ from ..serializers import Detalleusuariocamara
 
 @api_view(['GET'])
 def get_camaras(request):
-    camaras = Camaras.objects.filter(estado=True)
+    camaras = Camaras.objects.filter(estado=True, idtipocamara = 1)
     serializer = CamarasSerializer(camaras, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

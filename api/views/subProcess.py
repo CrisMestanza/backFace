@@ -1,5 +1,5 @@
 import subprocess
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework import status
 import torch
@@ -8,7 +8,10 @@ from django.conf import settings
 import cv2
 from facenet_pytorch import MTCNN, InceptionResnetV1
 import os
-
+import zipfile
+from django.http import JsonResponse
+from rest_framework.parsers import MultiPartParser
+import shutil
 @api_view(['GET'])
 def extraer_placas(request):
     # Ruta a la carpeta con las imágenes de las personas
@@ -24,9 +27,6 @@ def extraer_placas(request):
 
     return Response({"output": "Todo bien"}, status=status.HTTP_200_OK)
 
-    
-    
-    
     
     
 
@@ -94,3 +94,68 @@ def process_person_images(folder_path):
 
     return database
 
+
+
+# Carpeta destino (nivel de manage.py)
+RUTA_PERSONAS = os.path.join(settings.BASE_DIR, "personasConocidas2")
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser])
+def upload_zip(request):
+    """
+    Recibe un archivo .zip con carpetas e imágenes,
+    lo descomprime en /personasConocidas2 (al nivel de manage.py).
+    Solo deja las subcarpetas con imágenes (sin la carpeta raíz del zip).
+    """
+    try:
+        file = request.FILES.get("file")
+        if not file:
+            return JsonResponse({"error": "No se envió ningún archivo"}, status=400)
+
+        # Ruta temporal para guardar el ZIP
+        temp_zip_path = os.path.join(settings.BASE_DIR, "temp_upload.zip")
+        with open(temp_zip_path, "wb+") as dest:
+            for chunk in file.chunks():
+                dest.write(chunk)
+
+        # Carpeta temporal para extraer
+        temp_extract_dir = os.path.join(settings.BASE_DIR, "temp_extract")
+        if os.path.exists(temp_extract_dir):
+            shutil.rmtree(temp_extract_dir)
+        os.makedirs(temp_extract_dir, exist_ok=True)
+
+        # Extraer contenido del ZIP a temp_extract_dir
+        with zipfile.ZipFile(temp_zip_path, "r") as zip_ref:
+            zip_ref.extractall(temp_extract_dir)
+
+        # Borrar el ZIP temporal
+        os.remove(temp_zip_path)
+
+        # Crear carpeta destino si no existe
+        os.makedirs(RUTA_PERSONAS, exist_ok=True)
+
+        # Mover SOLO las subcarpetas del zip al destino
+        moved_folders = []
+        for root, dirs, files in os.walk(temp_extract_dir):
+            # Solo mover carpetas que tengan imágenes dentro
+            for d in dirs:
+                subfolder_path = os.path.join(root, d)
+                if any(f.lower().endswith((".jpg", ".jpeg", ".png")) for f in os.listdir(subfolder_path)):
+                    dest_path = os.path.join(RUTA_PERSONAS, d)
+                    if os.path.exists(dest_path):
+                        shutil.rmtree(dest_path)  # elimina si ya existe
+                    shutil.move(subfolder_path, dest_path)
+                    moved_folders.append(d)
+
+        # Limpiar carpeta temporal
+        shutil.rmtree(temp_extract_dir, ignore_errors=True)
+
+        return JsonResponse({
+            "status": "ok",
+            "message": "Carpeta subida y descomprimida en personasConocidas2",
+            "destino": RUTA_PERSONAS,
+            "carpetas_agregadas": moved_folders
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

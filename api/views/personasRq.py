@@ -76,9 +76,10 @@ def getPersonasRq(request):
 @api_view(['GET'])
 def getPersonasRqPk(request, pk):
     try:
-        persona = Detallepersonacamara.objects.filter(idpersona=pk, estado=True)
+        persona = Detallepersonacamara.objects.filter(idpersona=pk, estado=True).order_by("fecha", "hora")
     except Detallepersonacamara.DoesNotExist:
         return Response({"error": "Persona no encontrada"}, status=404)
 
     serializer = DetallepersonacamaraSerializer(persona, many=True)
+    # print(persona)
     return Response(serializer.data)

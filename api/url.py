@@ -7,6 +7,7 @@ from .views import subProcess
 from .views import imagenes
 from .views import personasRq
 from .views import mapa
+from .views import datosMapa
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -60,8 +61,12 @@ urlpatterns = [
     path('getTarapoto/', mapa.getTarapoto, name='getTarapoto'),  # Para obtener todas las cámaras
     path('getMorales/', mapa.getMorales, name='getMorales'),  # Para obtener todas las cámaras
     path('getMapa/<int:z>/<int:x>/<int:y>.png', mapa.getMapa, name='getMapa'),
+    # Subir nuevas personas 
+    path("upload-zip/", subProcess.upload_zip, name="upload-zip"),
 
-
+    # Datos para mapa
+    path('datosMapa/', datosMapa.datosForMapa, name='datosMapa'),  # Para obtener todas las cámaras
+    
 ]
 
 if settings.DEBUG:
