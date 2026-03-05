@@ -23,7 +23,6 @@ media/
 sonido/
 personasConocidas2/
 env/
-vigilancia/settings.py
 
 # Archivos de logs
 *.log
