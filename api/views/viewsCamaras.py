@@ -8,12 +8,12 @@ from datetime import datetime, date
 from django.http import StreamingHttpResponse, JsonResponse
 from django.conf import settings
 from rest_framework.decorators import api_view
+from .face_recognition_service import *
 import pygame
 
 # =========================
 # CONFIG
 # =========================
-API_URL = os.getenv("FACE_API_URL", "https://ae26e253a0fa.ngrok-free.app/recognize")  # pon aquí tu URL pública de ngrok /recognize
 RUTA_MEDIA = "media"
 SIM_THRESHOLD = 0.65      # solo para colorear / lógica local (la API ya filtra también)
 SOUND_COOLDOWN = 3        # seg. entre sonidos
@@ -39,7 +39,7 @@ class ProcesadorAPI(threading.Thread):
     def __init__(self):
         super().__init__()
         self.frame = None
-        self.resultado = []  # [(x1,y1,x2,y2,name,sim), ...]
+        self.resultado = []
         self.lock = threading.Lock()
         self.running = True
 
@@ -47,43 +47,28 @@ class ProcesadorAPI(threading.Thread):
         self.running = False
 
     def actualizar_frame(self, frame):
-        # Reducimos la carga: frame BGR→JPEG una sola vez
         with self.lock:
             self.frame = frame.copy()
 
-    def _post_frame(self, frame_bgr):
-        # Codificar JPEG
-        ok, buf = cv2.imencode(".jpg", frame_bgr)
-        if not ok:
-            return []
-
-        files = {"file": ("frame.jpg", buf.tobytes(), "image/jpeg")}
-        try:
-            resp = requests.post(API_URL, files=files, timeout=10)
-            resp.raise_for_status()
-            data = resp.json()
-            results = data.get("results", [])
-            # Normalizamos al formato esperado
-            out = []
-            for r in results:
-                x1, y1, x2, y2 = r["box"]
-                out.append((x1, y1, x2, y2, r["name"], float(r["similarity"])))
-            return out
-        except Exception as e:
-            # Evitar que caiga el hilo por picos de red
-            return []
+    def obtener_resultado(self):
+        with self.lock:
+            return list(self.resultado)
 
     def run(self):
         while self.running:
             frame = None
+
             with self.lock:
                 if self.frame is not None:
                     frame = self.frame
                     self.frame = None
-            if frame is not None:
-                self.resultado = self._post_frame(frame)
-            time.sleep(0.05)
 
+            if frame is not None:
+                resultado = procesar_frame(frame)
+                with self.lock:
+                    self.resultado = resultado
+
+            time.sleep(0.05)
 # =========================
 # STREAMING: abre RTSP, manda a API, pinta y emite MJPEG
 # =========================
@@ -91,7 +76,7 @@ def gen_camera_stream(camera_id, nombre):
     print(f"Conectando a la cámara {camera_id}...")
     rtsp_url = f"rtsp://admin:Serenazgo1234@{str(camera_id)}/video?tcp"
     print(camera_id)
-    cap = cv2.VideoCapture(int(camera_id))
+    cap = cv2.VideoCapture(rtsp_url)
     # cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
     # cap.set(cv2.CAP_PROP_BUFFERSIZE,    1)
 
@@ -115,7 +100,7 @@ def gen_camera_stream(camera_id, nombre):
             procesador.actualizar_frame(frame)
 
             # Usar última inferencia ya disponible
-            for x1, y1, x2, y2, name, sim in procesador.resultado:
+            for x1, y1, x2, y2, name, sim in procesador.obtener_resultado():
                 color = (255, 0, 0) if name == "Desconocido" else (0, 0, 255)
 
                 # Guardado de evidencia para reconocidos (sólo 1 carpeta por minuto por persona)
