@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -82,17 +82,27 @@ WSGI_APPLICATION = 'vigilancia.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'vigilancia',  # Nombre de la base de datos
+#         'USER': 'postgres',           # Nombre de usuario de PostgreSQL
+#         'PASSWORD': '72655883cristian',           # Contraseña de usuario
+#         'HOST': 'localhost',                   # Dirección del servidor de la base de datos (puede ser una IP o 'localhost')
+#         'PORT': '5432',                        # Puerto de PostgreSQL, por defecto es 5432
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'vigilancia',  # Nombre de la base de datos
-        'USER': 'postgres',           # Nombre de usuario de PostgreSQL
-        'PASSWORD': '72655883cristian',           # Contraseña de usuario
-        'HOST': 'localhost',                   # Dirección del servidor de la base de datos (puede ser una IP o 'localhost')
-        'PORT': '5432',                        # Puerto de PostgreSQL, por defecto es 5432
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
